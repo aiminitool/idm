@@ -1,0 +1,78 @@
+name: Build IDMLikeDownloaderGui
+
+# Chạy khi push/PR vào nhánh main, hoặc khi tạo tag bắt đầu bằng "v" (để đính kèm exe vào Release)
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:   # cho phép bấm "Run workflow" thủ công trên GitHub
+
+jobs:
+  build:
+    # BẮT BUỘC dùng windows-latest vì WinForms chỉ build/chạy trên Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Khôi phục gói NuGet
+        run: dotnet restore IDMLikeDownloaderGui.csproj
+
+      - name: Build (Release)
+        run: dotnet build IDMLikeDownloaderGui.csproj -c Release --no-restore
+
+      # Đóng gói thành 1 file .exe độc lập (self-contained), không cần cài .NET Runtime trên máy chạy
+      - name: Publish file .exe độc lập
+        run: >
+          dotnet publish IDMLikeDownloaderGui.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Tải lên artifact (xem ở tab Actions sau khi build xong)
+        uses: actions/upload-artifact@v4
+        with:
+          name: IDMLikeDownloaderGui-win-x64
+          path: publish/**
+
+  # Job này chỉ chạy khi bạn đẩy tag dạng v1.0.0, v1.1.0... để tự tạo GitHub Release kèm file exe
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish file .exe độc lập
+        run: >
+          dotnet publish IDMLikeDownloaderGui.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Tạo GitHub Release và đính kèm exe
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/IDMLikeDownloaderGui.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
