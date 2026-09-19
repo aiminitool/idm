@@ -24,15 +24,15 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Khôi phục gói NuGet
-        run: dotnet restore IDMLikeDownloaderGui/IDMLikeDownloaderGui.csproj
+        run: dotnet restore IDMLikeDownloaderGui.csproj
 
       - name: Build (Release)
-        run: dotnet build IDMLikeDownloaderGui/IDMLikeDownloaderGui.csproj -c Release --no-restore
+        run: dotnet build IDMLikeDownloaderGui.csproj -c Release --no-restore
 
       # Đóng gói thành 1 file .exe độc lập (self-contained), không cần cài .NET Runtime trên máy chạy
       - name: Publish file .exe độc lập
         run: >
-          dotnet publish IDMLikeDownloaderGui/IDMLikeDownloaderGui.csproj
+          dotnet publish IDMLikeDownloaderGui.csproj
           -c Release
           -r win-x64
           --self-contained true
@@ -62,7 +62,7 @@ jobs:
 
       - name: Publish file .exe độc lập
         run: >
-          dotnet publish IDMLikeDownloaderGui/IDMLikeDownloaderGui.csproj
+          dotnet publish IDMLikeDownloaderGui.csproj
           -c Release
           -r win-x64
           --self-contained true
