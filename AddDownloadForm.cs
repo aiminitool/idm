@@ -68,19 +68,17 @@ namespace IDMLikeDownloaderGui
                     try { _txtFileName.Text = MultiThreadDownloader.GuessFileName(_txtUrl.Text); }
                     catch { /* bỏ qua khi URL chưa hợp lệ */ }
                 }
-                
             };
 
             _btnOk.Click += (_, e) =>
             {
-                if (string.IsNullOrWhiteSpace(Url) || !Uri.TryCreate(Url, UriKind.Absolute, out Uri? _))
+                bool isValidUrl = Uri.IsWellFormedUriString(Url, UriKind.Absolute);
+                if (string.IsNullOrWhiteSpace(Url) || !isValidUrl)
                 {
                     MessageBox.Show(this, "URL không hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     DialogResult = DialogResult.None;
                     return;
                 }
-
-                
                 if (string.IsNullOrWhiteSpace(_txtFileName.Text))
                 {
                     MessageBox.Show(this, "Vui lòng nhập tên file.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
